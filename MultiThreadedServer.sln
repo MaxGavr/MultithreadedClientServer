@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "MultiThreadedServer\MultiThreadedServer.vcxproj", "{DD85959D-42C1-42A4-998C-2B09DA271FC1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Server\MultiThreadedServer.vcxproj", "{DD85959D-42C1-42A4-998C-2B09DA271FC1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Client.vcxproj", "{E90FF937-FEBA-40A9-B1A8-1C7C6F5F031A}"
 EndProject
