@@ -43,7 +43,7 @@ void TcpServer::start()
     int result = bind(m_Socket, (sockaddr*)&address, sizeof(address));
     if (result == SOCKET_ERROR)
         std::cerr << "Can not bind server socket. Error: " << WSAGetLastError() << std::endl;
-
+    /*
     do
     {
         result = listen(m_Socket, SOMAXCONN);
@@ -57,6 +57,7 @@ void TcpServer::start()
         if (clientSocket == INVALID_SOCKET)
             std::cerr << "Accepting failed. Error: " << WSAGetLastError() << std::endl;
     } while ()
+    */
 }
 
 void TcpServer::receiveData(SOCKET sock)

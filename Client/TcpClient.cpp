@@ -9,15 +9,19 @@ TcpClient::TcpClient()
 {
     m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (m_Socket == INVALID_SOCKET)
-        std::cerr << "Can't create client socket. Error code: " << WSAGetLastError() << std::endl;
+        LOG4CPP_ERROR_SD() << "Can't create client socket. Error code: " << WSAGetLastError();
+
+    LOG4CPP_DEBUG_SD() << "Client socket created successfully";
 }
 
 TcpClient::~TcpClient()
 {
 }
 
-void TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
+bool TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
 {
+    LOG4CPP_DEBUG_SD() << "Connecting to " << ipAddress << ":" << ipPort;
+
     sockaddr_in hint;
     hint.sin_family = AF_INET;
     hint.sin_addr.S_un.S_addr = inet_addr(ipAddress);
@@ -26,15 +30,19 @@ void TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
     int result = connect(m_Socket, (sockaddr*) &hint, sizeof(hint));
     if (result == SOCKET_ERROR)
     {
-        std::cerr << "Can not connect to host: " << ipAddress << ":" << ipPort << std::endl;
-        std::cerr << "Error: " << WSAGetLastError();
+        LOG4CPP_ERROR_SD() << "Can not connect to host: " << ipAddress << ":" << ipPort << ". Error code: " << WSAGetLastError();
 
         closesocket(m_Socket);
         m_Socket = INVALID_SOCKET;
+
+        return false;
     }
+
+    LOG4CPP_DEBUG_SD() << "Connection successfull";
+    return true;
 }
 
-void TcpClient::sendMessage()
+void TcpClient::exchangeData()
 {
     sendData(m_Message);
     receiveData();
@@ -42,17 +50,20 @@ void TcpClient::sendMessage()
 
 void TcpClient::sendData(const char* buf)
 {
-    std::cout << "Sending data" << std::endl;
+    LOG4CPP_DEBUG_SD() << "Sending data: " << buf;
+
     int result = send(m_Socket, buf, strlen(buf), 0);
     if (result == SOCKET_ERROR)
-        std::cerr << "Sending message failed. Error: " << WSAGetLastError() << std::endl;
+        LOG4CPP_ERROR_SD() << "Sending message failed. Error code: " << WSAGetLastError();
+
+    LOG4CPP_DEBUG_SD() << "Data sending successfull";
 }
 
 void TcpClient::receiveData()
 {
-    std::cout << "Receiving data" << std::endl;
-    std::stringstream serverResponse;
+    LOG4CPP_DEBUG_SD() << "Receiving data";
 
+    std::stringstream serverResponse;
     char buf[BUF_SIZE] = "";
 
     int bytesReceived = 0;
@@ -65,7 +76,7 @@ void TcpClient::receiveData()
             serverResponse << buf;
         }
         else if (bytesReceived < 0)
-            std::cerr << "Receive failed. Error: " << WSAGetLastError() << std::endl;
+            LOG4CPP_ERROR_SD() << "Data receiving failed. Error code: " << WSAGetLastError();
 
     } while (bytesReceived > 0);
 
@@ -74,13 +85,17 @@ void TcpClient::receiveData()
 
 void TcpClient::disconnect()
 {
+    LOG4CPP_DEBUG_SD() << "Disconnecting from host";
+
     int result = closesocket(m_Socket);
     if (result == SOCKET_ERROR)
-        std::cerr << "Socket closing error: " << WSAGetLastError() << std::endl;
+        LOG4CPP_DEBUG_SD() << "Socket closing error. Error code: " << WSAGetLastError();
+
+    LOG4CPP_DEBUG_SD() << "Disconnection successfull";
 }
 
 void TcpClient::sleep()
 {
-    int seconds = rand() % (10 - 1) + 2;
+    const int seconds = rand() % (10 - 1) + 2;
     Sleep(seconds * 1e3);
 }
