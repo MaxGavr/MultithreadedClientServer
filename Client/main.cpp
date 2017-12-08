@@ -11,7 +11,7 @@ bool configureLogger()
 {
     try
     {
-        log4cpp::PropertyConfigurator::configure("log4cpp.properties");
+        log4cpp::PropertyConfigurator::configure("log4cpp_client.properties");
         return true;
     }
     catch (const log4cpp::ConfigureFailure& e)

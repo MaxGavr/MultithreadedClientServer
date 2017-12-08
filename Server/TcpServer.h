@@ -3,7 +3,11 @@
 #include <WinSock2.h>
 #include <mutex>
 #include <vector>
-#include <string>
+
+#include "log4cpp\Category.hh"
+#include "log4cpp\convenience.h"
+
+LOG4CPP_LOGGER("")
 
 class TcpServer
 {
@@ -12,16 +16,16 @@ public:
     ~TcpServer();
 
     void start();
+    void handleConnection(SOCKET clientSocket, sockaddr clientAddress);
 
-    void sendData(const char* buf);
-    void receiveData(SOCKET sock);
-
-    void addMessage(std::string msg);
+    void addMessage(const std::string&  msg);
 
 private:
+    bool bindSocket();
+
     SOCKET m_Socket;
 
     std::mutex m_Mutex;
-    std::vector<std::string> m_Log;
+    std::vector<std::string> m_MessagePool;
 };
 

@@ -1,4 +1,5 @@
 #include "TcpServer.h"
+#include "ClientConnection.h"
 #include "common.h"
 #include <WS2tcpip.h>
 #include <iostream>
@@ -9,9 +10,10 @@
 TcpServer::TcpServer()
     : m_Socket(INVALID_SOCKET)
 {
+    LOG4CPP_DEBUG_SD() << "Creating server socket";
     m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (m_Socket == INVALID_SOCKET)
-        std::cerr << "Can not create server socket. Error: " << WSAGetLastError() << std::endl;
+        LOG4CPP_ERROR_SD() << "Can not create server socket. Error: " << WSAGetLastError();
 }
 
 TcpServer::~TcpServer()
@@ -20,6 +22,8 @@ TcpServer::~TcpServer()
 
 void TcpServer::start()
 {
+    // let the server select it's host address
+
     /*
     struct addrinfo* serverAddressInfo = NULL;
 
@@ -35,58 +39,74 @@ void TcpServer::start()
         std::cerr << "getaddrinfo failed. Error: " << WSAGetLastError() << std::endl;
     */
 
+    if (!bindSocket())
+        return;
+
+    do
+    {
+        LOG4CPP_DEBUG_SD() << "Listening to pending connections";
+
+        int result = listen(m_Socket, SOMAXCONN);
+        if (result == SOCKET_ERROR)
+        {
+            LOG4CPP_ERROR_SD() << "Listening failed. Error code: " << WSAGetLastError();
+            continue;
+        }
+
+        SOCKET clientSocket = INVALID_SOCKET;
+        struct sockaddr clientAddress;
+        int addressSize = sizeof(clientAddress);
+
+        LOG4CPP_DEBUG_SD() << "Accepting new connection";
+
+        clientSocket = accept(m_Socket, &clientAddress, &addressSize);
+        if (clientSocket == INVALID_SOCKET)
+        {
+            LOG4CPP_ERROR_SD() << "Accepting failed. Error code: " << WSAGetLastError();
+            continue;
+        }
+
+        handleConnection(clientSocket, clientAddress);
+
+    } while (true);
+}
+
+void TcpServer::handleConnection(SOCKET clientSocket, sockaddr clientAddress)
+{
+    sockaddr_in* clientAddress_in = (sockaddr_in*)&clientAddress;
+
+    ClientConnection* connection = new ClientConnection(this, clientSocket, *clientAddress_in);
+
+    LOG4CPP_DEBUG_SD() << "Handling new connection with address " << connection->getClientAddress();
+
+    std::thread connectionThread(&ClientConnection::handleClient, connection);
+    connectionThread.detach();
+}
+
+void TcpServer::addMessage(const std::string& msg)
+{
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
+    m_MessagePool.push_back(msg);
+    std::cout << msg << std::endl;
+}
+
+bool TcpServer::bindSocket()
+{
     struct sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_port = htons(IP_PORT);
     address.sin_addr.S_un.S_addr = inet_addr(IP_LOCAL_ADDRESS);
 
+    LOG4CPP_DEBUG_SD() << "Binding socket to address: " << IP_LOCAL_ADDRESS << ":" << IP_PORT;
+
     int result = bind(m_Socket, (sockaddr*)&address, sizeof(address));
     if (result == SOCKET_ERROR)
-        std::cerr << "Can not bind server socket. Error: " << WSAGetLastError() << std::endl;
-    /*
-    do
     {
-        result = listen(m_Socket, SOMAXCONN);
-        if (result == SOCKET_ERROR)
-            std::cerr << "Listening failed. Error: " << WSAGetLastError() << std::endl;
+        LOG4CPP_ERROR_SD() << "Binding socket to host " << IP_LOCAL_ADDRESS << ":" << IP_PORT
+            << " failed. Error code: " << WSAGetLastError();
+        return false;
+    }
 
-        SOCKET clientSocket = INVALID_SOCKET;
-        struct sockaddr clientAddress;
-        int addressSize = sizeof(clientAddress);
-        clientSocket = accept(m_Socket, &clientAddress, &addressSize);
-        if (clientSocket == INVALID_SOCKET)
-            std::cerr << "Accepting failed. Error: " << WSAGetLastError() << std::endl;
-    } while ()
-    */
-}
-
-void TcpServer::receiveData(SOCKET sock)
-{
-    std::stringstream clientMessage;
-
-    char buf[BUF_SIZE] = "";
-
-    int bytesReceived = 0;
-    do
-    {
-        bytesReceived = recv(sock, buf, BUF_SIZE, 0);
-        std::cout << "Bytes received: " << bytesReceived << std::endl;
-        if (bytesReceived > 0)
-        {
-            buf[bytesReceived] = '\0';
-            clientMessage << buf;
-        }
-        else if (bytesReceived < 0)
-            std::cerr << "Receive failed. Error: " << WSAGetLastError() << std::endl;
-
-    } while (bytesReceived > 0);
-
-    std::cout << clientMessage.str();
-}
-
-void TcpServer::addMessage(std::string msg)
-{
-    m_Mutex.lock();
-    m_Log.push_back(msg);
-    m_Mutex.unlock();
+    return true;
 }

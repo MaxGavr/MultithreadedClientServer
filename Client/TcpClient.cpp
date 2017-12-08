@@ -57,6 +57,9 @@ void TcpClient::sendData(const char* buf)
         LOG4CPP_ERROR_SD() << "Sending message failed. Error code: " << WSAGetLastError();
 
     LOG4CPP_DEBUG_SD() << "Data sending successfull";
+
+    // TODO: error check
+    shutdown(m_Socket, SD_SEND);
 }
 
 void TcpClient::receiveData()

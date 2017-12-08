@@ -10,7 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{E9DBA831-CDDD-42C0-8505-FB0FB62C2820}"
 	ProjectSection(SolutionItems) = preProject
 		common\common.h = common\common.h
-		common\log4cpp.properties = common\log4cpp.properties
+		common\log4cpp_client.properties = common\log4cpp_client.properties
+		common\log4cpp_server.properties = common\log4cpp_server.properties
 	EndProjectSection
 EndProject
 Global
