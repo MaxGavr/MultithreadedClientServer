@@ -1,4 +1,5 @@
 #pragma once
+#include <WinSock2.h>
 
 const int WINSOCK_MINOR_VER = 2;
 const int WINSOCK_MAJOR_VER = 2;

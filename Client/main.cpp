@@ -1,11 +1,10 @@
-#include "common.h"
 #include "TcpClient.h"
+#include <ctime>
 
 #include "log4cpp\PropertyConfigurator.hh"
 
-#include <assert.h>
-
 #pragma comment(lib, "Ws2_32.lib")
+
 
 bool configureLogger()
 {
@@ -39,21 +38,22 @@ bool initializeWinSock()
 
 int main(int argc, char* argv[])
 {
-    if (!configureLogger())
-        return 1;
+    srand(time(NULL));
 
     if (argc < 2)
     {
-        std::cerr << "Host IP address has not been specified" << std::endl;
-        log4cpp::Category::shutdown();
+        std::cerr << "Host IP address has not been specified!" << std::endl;
         return 1;
     }
+
+    if (!configureLogger())
+        return 1;
 
     if (!initializeWinSock())
         return 1;
 
     TcpClient client;
-    if (client.connectToServer(IP_LOCAL_ADDRESS, IP_PORT))
+    if (client.connectToServer(argv[1], IP_PORT))
     {
         client.sleep();
         client.exchangeData();

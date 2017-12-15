@@ -23,7 +23,7 @@
     <ProjectGuid>{E90FF937-FEBA-40A9-B1A8-1C7C6F5F031A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Client</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(SolutionDir)\common\log4cpp\msvc10\log4cppLIB\Debug;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(SolutionDir)\common\log4cpp\src;$(SourcePath)</SourcePath>
+    <SourcePath>$(SourcePath)</SourcePath>
     <IncludePath>$(SolutionDir)\common\log4cpp\include;$(SolutionDir)\common\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -81,7 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <SourcePath>$(SolutionDir)\common\log4cpp\src;$(SourcePath)</SourcePath>
+    <SourcePath>$(SourcePath)</SourcePath>
     <LibraryPath>$(SolutionDir)\common\log4cpp\msvc10\log4cpp\Release;$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)\common\log4cpp\include;$(SolutionDir)\common;$(IncludePath)</IncludePath>
   </PropertyGroup>

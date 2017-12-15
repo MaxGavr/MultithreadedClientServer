@@ -21,15 +21,9 @@
     <ClCompile Include="TcpServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ClientConnection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TcpServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

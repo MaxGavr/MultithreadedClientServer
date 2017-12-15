@@ -7,11 +7,11 @@
 TcpClient::TcpClient()
     : m_Socket(INVALID_SOCKET)
 {
+    LOG4CPP_DEBUG_S(fLog) << "Creating client socket";
+
     m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (m_Socket == INVALID_SOCKET)
-        LOG4CPP_ERROR_SD() << "Can't create client socket. Error code: " << WSAGetLastError();
-
-    LOG4CPP_DEBUG_SD() << "Client socket created successfully";
+        LOG4CPP_ERROR_S(fLog) << "Can't create client socket. Error code: " << WSAGetLastError();
 }
 
 TcpClient::~TcpClient()
@@ -20,7 +20,7 @@ TcpClient::~TcpClient()
 
 bool TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
 {
-    LOG4CPP_DEBUG_SD() << "Connecting to " << ipAddress << ":" << ipPort;
+    LOG4CPP_DEBUG_S(fLog) << "Connecting to " << ipAddress << ":" << ipPort;
 
     sockaddr_in hint;
     hint.sin_family = AF_INET;
@@ -30,7 +30,7 @@ bool TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
     int result = connect(m_Socket, (sockaddr*) &hint, sizeof(hint));
     if (result == SOCKET_ERROR)
     {
-        LOG4CPP_ERROR_SD() << "Can not connect to host: " << ipAddress << ":" << ipPort << ". Error code: " << WSAGetLastError();
+        LOG4CPP_ERROR_S(fLog) << "Can not connect to host: " << ipAddress << ":" << ipPort << ". Error code: " << WSAGetLastError();
 
         closesocket(m_Socket);
         m_Socket = INVALID_SOCKET;
@@ -38,7 +38,8 @@ bool TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
         return false;
     }
 
-    LOG4CPP_DEBUG_SD() << "Connection successfull";
+    LOG4CPP_INFO_S(cLog) << "Connected to " << ipAddress << ":" << ipPort;
+    LOG4CPP_DEBUG_S(fLog) << "Connection successfull";
     return true;
 }
 
@@ -50,21 +51,20 @@ void TcpClient::exchangeData()
 
 void TcpClient::sendData(const char* buf)
 {
-    LOG4CPP_DEBUG_SD() << "Sending data: " << buf;
+    LOG4CPP_INFO_S(cLog) << "Sending \"" << buf << "\" to host";
+    LOG4CPP_DEBUG_S(fLog) << "Sending data to server: " << buf;
 
-    int result = send(m_Socket, buf, strlen(buf), 0);
+    int result = send(m_Socket, buf, strlen(buf) + 1, 0);
     if (result == SOCKET_ERROR)
-        LOG4CPP_ERROR_SD() << "Sending message failed. Error code: " << WSAGetLastError();
+        LOG4CPP_ERROR_S(fLog) << "Sending failed. Error code: " << WSAGetLastError();
 
-    LOG4CPP_DEBUG_SD() << "Data sending successfull";
-
-    // TODO: error check
-    shutdown(m_Socket, SD_SEND);
+    LOG4CPP_DEBUG_S(fLog) << "Data was sent successfully";
 }
 
 void TcpClient::receiveData()
 {
-    LOG4CPP_DEBUG_SD() << "Receiving data";
+    LOG4CPP_INFO_S(cLog) << "Waiting for host response";
+    LOG4CPP_DEBUG_S(fLog) << "Receiving data";
 
     std::stringstream serverResponse;
     char buf[BUF_SIZE] = "";
@@ -79,26 +79,29 @@ void TcpClient::receiveData()
             serverResponse << buf;
         }
         else if (bytesReceived < 0)
-            LOG4CPP_ERROR_SD() << "Data receiving failed. Error code: " << WSAGetLastError();
+            LOG4CPP_ERROR_S(fLog) << "Data receiving failed. Error code: " << WSAGetLastError();
 
     } while (bytesReceived > 0);
 
-    std::cout << serverResponse.str();
+    LOG4CPP_INFO_S(cLog) << "Received \"" << serverResponse.str() << "\" from host";
 }
 
 void TcpClient::disconnect()
 {
-    LOG4CPP_DEBUG_SD() << "Disconnecting from host";
+    LOG4CPP_INFO_S(cLog) << "Disconnecting from host";
+    LOG4CPP_DEBUG_S(fLog) << "Disconnecting from host";
 
     int result = closesocket(m_Socket);
     if (result == SOCKET_ERROR)
-        LOG4CPP_DEBUG_SD() << "Socket closing error. Error code: " << WSAGetLastError();
+        LOG4CPP_DEBUG_S(fLog) << "Socket closing error. Error code: " << WSAGetLastError();
 
-    LOG4CPP_DEBUG_SD() << "Disconnection successfull";
+    LOG4CPP_DEBUG_S(fLog) << "Disconnection successfull";
 }
 
 void TcpClient::sleep()
 {
     const int seconds = rand() % (10 - 1) + 2;
+    LOG4CPP_INFO_S(cLog) << "Sleeping for " << seconds << " seconds";
+    LOG4CPP_DEBUG_S(fLog) << "Sleeping for " << seconds << " seconds";
     Sleep(seconds * 1e3);
 }

@@ -39,6 +39,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -75,7 +76,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)\common\;$(SolutionDir)\common\log4cpp\include\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\common\log4cpp\msvc10\log4cppLIB\Debug;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(SolutionDir)\common\log4cpp\src;$(SourcePath)</SourcePath>
+    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -84,7 +85,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)\common;$(SolutionDir)\common\log4cpp\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\common\log4cpp\msvc10\log4cpp\Release;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(SolutionDir)\common\log4cpp\src;$(SourcePath)</SourcePath>
+    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -125,6 +126,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,12 +152,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ClientConnection.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TcpServer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientConnection.h" />
     <ClInclude Include="TcpServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
