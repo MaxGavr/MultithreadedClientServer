@@ -2,6 +2,7 @@
 #include "common.h"
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 
 TcpClient::TcpClient()
@@ -45,7 +46,7 @@ bool TcpClient::connectToServer(const char* ipAddress, const u_short ipPort)
 
 void TcpClient::exchangeData()
 {
-    sendData(m_Message);
+    sendData(generateRandomString(32).c_str());
     receiveData();
 }
 
@@ -101,7 +102,25 @@ void TcpClient::disconnect()
 void TcpClient::sleep()
 {
     const int seconds = rand() % (10 - 1) + 2;
+
     LOG4CPP_INFO_S(cLog) << "Sleeping for " << seconds << " seconds";
     LOG4CPP_DEBUG_S(fLog) << "Sleeping for " << seconds << " seconds";
-    Sleep(seconds * 1e3);
+
+    Sleep((DWORD)(seconds * 1e3));
+}
+
+std::string TcpClient::generateRandomString(size_t length)
+{
+    auto randchar = []() -> char
+    {
+        const char charset[] =
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
+        const size_t maxIndex = (sizeof(charset) - 1);
+        return charset[rand() % maxIndex];
+    };
+    std::string str(length, 0);
+    std::generate_n(str.begin(), length, randchar);
+    return str;
 }

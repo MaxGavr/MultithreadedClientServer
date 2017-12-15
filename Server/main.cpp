@@ -19,6 +19,7 @@ bool configureLogger()
     }
 
     LOG4CPP_DEBUG_S(fLog) << "###---Logger initialized---####################################";
+    return true;
 }
 
 bool initializeWinSock()
@@ -55,7 +56,9 @@ int main(int argc, char* argv[])
     TcpServer server;
     server.start(argv[1], IP_PORT);
 
+    LOG4CPP_DEBUG_S(fLog) << "Terminating WinSock";
     WSACleanup();
+    LOG4CPP_DEBUG_S(fLog) << "###---Logger terminated---####################################";
     log4cpp::Category::shutdown();
 
     return 0;

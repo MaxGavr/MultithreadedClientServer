@@ -11,7 +11,6 @@ bool configureLogger()
     try
     {
         log4cpp::PropertyConfigurator::configure("log4cpp_client.properties");
-        return true;
     }
     catch (const log4cpp::ConfigureFailure& e)
     {
@@ -20,6 +19,9 @@ bool configureLogger()
         log4cpp::Category::shutdown();
         return false;
     }
+
+    LOG4CPP_DEBUG_S(fLog) << "###---Logger initialized---####################################";
+    return true;
 }
 
 bool initializeWinSock()
@@ -30,6 +32,8 @@ bool initializeWinSock()
     if (int result = WSAStartup(winsockVersion, &wsaData) != 0)
     {
         std::cerr << "WSAStartup failed with error: " << result << std::endl;
+
+        LOG4CPP_DEBUG_S(fLog) << "###---Logger terminated---####################################";
         log4cpp::Category::shutdown();
         return false;
     }
@@ -61,8 +65,10 @@ int main(int argc, char* argv[])
         client.disconnect();
     }
 
+    LOG4CPP_DEBUG_S(fLog) << "Terminating WinSock";
     WSACleanup();
 
+    LOG4CPP_DEBUG_S(fLog) << "###---Logger terminated---####################################";
     log4cpp::Category::shutdown();
     
     return 0;

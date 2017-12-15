@@ -60,7 +60,6 @@ std::string TcpServer::getServerAddress() const
     return getClientAddress(&address);
 }
 
-
 std::string TcpServer::getCurrentTime(bool withMilliseconds) const
 {
     time_t t = time(NULL);
@@ -79,7 +78,6 @@ std::string TcpServer::getCurrentTime(bool withMilliseconds) const
     return timeStr;
 }
 
-
 std::string TcpServer::getThreadId() const
 {
     std::stringstream id;
@@ -87,12 +85,22 @@ std::string TcpServer::getThreadId() const
     return id.str();
 }
 
+
+
 void TcpServer::timer()
 {
+    std::stringstream threadId;
+    m_TimerMutex.lock();
+    threadId << '[' << m_TimerThreadId << ']';
+    m_TimerMutex.unlock();
+
     while (m_isRunning)
     {
-        addMessage("idle");
-        Sleep(1e3);
+        std::stringstream msg;
+        msg << threadId.str() << " idle";
+        addMessage(msg.str());
+
+        Sleep((DWORD)1e3);
     }
 }
 
@@ -120,21 +128,22 @@ void TcpServer::dumpLog()
 
     dumpFileName << time_s << ".log";
 
-    std::ofstream file;
-    file.open(dumpFileName.str());
+    {
+        std::lock_guard<std::mutex> lock(m_Mutex);
 
-    std::lock_guard<std::mutex> lock(m_Mutex);
+        std::ofstream file;
+        file.open(dumpFileName.str());
 
-    for (std::string message : m_MessageBuffer)
-        file << message << std::endl;
+        for (std::string message : m_MessageBuffer)
+            file << message << std::endl;
 
-    file.close();
+        file.close();
+    }
 
     std::vector<std::string>().swap(m_MessageBuffer);
 
-    //system("cls");
     LOG4CPP_INFO_S(cLog) << "Dump file has been created: " << dumpFileName.str();
-    LOG4CPP_DEBUG_S(fLog) << "Dump file has been created" << dumpFileName.str();
+    LOG4CPP_INFO_S(fLog) << "Dump file has been created" << dumpFileName.str();
 
     if (signal(SIGINT, TcpServer::handleInterruption) == SIG_ERR)
         LOG4CPP_ERROR_S(fLog) << "Registering custom SIGINT handler failed";
@@ -155,14 +164,19 @@ bool TcpServer::start(const char* ipAddress, const u_short ipPort)
     }
 
     std::stringstream startMessage;
-    startMessage << "Server is running on " << getServerAddress();
+    startMessage << getThreadId() << " Server is running on " << getServerAddress();
     addMessage(startMessage.str());
 
     // TODO: find right place
     m_isRunning = true;
 
-    std::thread timerThread(&TcpServer::timer, this);
-    timerThread.detach();
+    {
+        std::lock_guard<std::mutex> lock(m_TimerMutex);
+     
+        std::thread timerThread(&TcpServer::timer, this);
+        m_TimerThreadId = timerThread.get_id();
+        timerThread.detach();
+    }
 
     do
     {
@@ -221,9 +235,9 @@ void TcpServer::acceptNewClient()
 
     // post initial message
     std::stringstream message;
-    message << "Client " << getClientAddress(&clientAddress) << " connected.";
+    message << getThreadId() << " Client " << getClientAddress(&clientAddress) << " connected.";
     addMessage(message.str());
-    LOG4CPP_DEBUG_S(fLog) << message.str();
+    LOG4CPP_INFO_S(fLog) << message.str();
 
     // enable nonblocking mode
     bool enable = true;
@@ -255,11 +269,11 @@ void TcpServer::receiveClientData(SOCKET clientSocket)
             client.messageReceived = true;
 
             std::stringstream logMsg;
-            logMsg << "Received message from " << getClientAddress(clientSocket)
+            logMsg << getThreadId() << " Received message from " << getClientAddress(clientSocket)
                    << ": \"" << client.message.str() << "\"";
 
             addMessage(logMsg.str());
-            LOG4CPP_DEBUG_S(fLog) << logMsg.str();
+            LOG4CPP_INFO_S(fLog) << logMsg.str();
         }
     }
     else if (bytesReceived == 0) // client socket has been closed
@@ -279,7 +293,6 @@ void TcpServer::receiveClientData(SOCKET clientSocket)
 
 void TcpServer::sendClientData(SOCKET clientSocket)
 {
-
     LOG4CPP_DEBUG_S(fLog) << "Sending data to " << getClientAddress(clientSocket);
 
     ClientSocketInfo& client = m_Clients.at(clientSocket);
@@ -320,12 +333,12 @@ void TcpServer::disconnectClient(SOCKET clientSocket)
         LOG4CPP_ERROR_S(fLog) << "Closing client socket failed. Error code: " << WSAGetLastError();
         return;
     }
-    LOG4CPP_DEBUG_S(fLog) << "Client " << clientAddress << " disconnected";
+    LOG4CPP_INFO_S(fLog) << "Client " << clientAddress << " disconnected";
 
     m_Clients.at(clientSocket).disconnected = true;
 
     std::stringstream message;
-    message << " Client " << clientAddress << " disconnected";
+    message << getThreadId() << " Client " << clientAddress << " disconnected";
     addMessage(message.str());
 }
 
@@ -338,12 +351,13 @@ void TcpServer::fdSetAllSockets(fd_set& set) const
 
 void TcpServer::addMessage(const std::string& msg)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
-
-    LOG4CPP_INFO_S(cLog) << getThreadId() << " " << msg;
+    LOG4CPP_INFO_S(cLog) << msg;
 
     std::stringstream formattedMessage;
-    formattedMessage << getCurrentTime() << " " << getThreadId() << " " << msg;
+    formattedMessage << getCurrentTime() << " " << msg;
+
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
     m_MessageBuffer.push_back(formattedMessage.str());
 }
 

@@ -24,9 +24,9 @@ public:
     
     void sleep();
 
+    std::string generateRandomString(size_t length);
+
 private:
     SOCKET m_Socket;
-
-    const char* m_Message = "Totally random string!";
 };
 

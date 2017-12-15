@@ -40,7 +40,7 @@ public:
 
     bool start(const char* ipAddress, const u_short ipPort);
 
-    void addMessage(const std::string&  msg);
+    void addMessage(const std::string& msg);
 
     static void handleInterruption(int signum);
 
@@ -66,12 +66,13 @@ private:
 private:
     static TcpServer* m_ServerInstance;
     bool m_isRunning;
+    std::thread::id m_TimerThreadId;
 
     SOCKET m_Socket;
 
     std::mutex m_Mutex;
+    std::mutex m_TimerMutex;
     std::vector<std::string> m_MessageBuffer;
 
     std::map<SOCKET, ClientSocketInfo> m_Clients;
 };
-
