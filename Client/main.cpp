@@ -1,18 +1,16 @@
-#include "common.h"
 #include "TcpClient.h"
+#include <ctime>
 
 #include "log4cpp\PropertyConfigurator.hh"
 
-#include <assert.h>
-
 #pragma comment(lib, "Ws2_32.lib")
+
 
 bool configureLogger()
 {
     try
     {
         log4cpp::PropertyConfigurator::configure("log4cpp_client.properties");
-        return true;
     }
     catch (const log4cpp::ConfigureFailure& e)
     {
@@ -21,6 +19,9 @@ bool configureLogger()
         log4cpp::Category::shutdown();
         return false;
     }
+
+    LOG4CPP_DEBUG_S(fLog) << "###---Logger initialized---####################################";
+    return true;
 }
 
 bool initializeWinSock()
@@ -31,6 +32,8 @@ bool initializeWinSock()
     if (int result = WSAStartup(winsockVersion, &wsaData) != 0)
     {
         std::cerr << "WSAStartup failed with error: " << result << std::endl;
+
+        LOG4CPP_DEBUG_S(fLog) << "###---Logger terminated---####################################";
         log4cpp::Category::shutdown();
         return false;
     }
@@ -39,21 +42,22 @@ bool initializeWinSock()
 
 int main(int argc, char* argv[])
 {
-    if (!configureLogger())
-        return 1;
+    srand(time(NULL));
 
     if (argc < 2)
     {
-        std::cerr << "Host IP address has not been specified" << std::endl;
-        log4cpp::Category::shutdown();
+        std::cerr << "Host IP address has not been specified!" << std::endl;
         return 1;
     }
+
+    if (!configureLogger())
+        return 1;
 
     if (!initializeWinSock())
         return 1;
 
     TcpClient client;
-    if (client.connectToServer(IP_LOCAL_ADDRESS, IP_PORT))
+    if (client.connectToServer(argv[1], IP_PORT))
     {
         client.sleep();
         client.exchangeData();
@@ -61,8 +65,10 @@ int main(int argc, char* argv[])
         client.disconnect();
     }
 
+    LOG4CPP_DEBUG_S(fLog) << "Terminating WinSock";
     WSACleanup();
 
+    LOG4CPP_DEBUG_S(fLog) << "###---Logger terminated---####################################";
     log4cpp::Category::shutdown();
     
     return 0;
