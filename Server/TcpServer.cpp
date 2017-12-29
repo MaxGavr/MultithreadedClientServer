@@ -15,6 +15,10 @@ TcpServer::TcpServer()
     m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (m_Socket == INVALID_SOCKET)
         LOG4CPP_ERROR_S(fLog) << "Can not create server socket. Error code: " << WSAGetLastError();
+
+    // enable nonblocking mode
+    bool enable = true;
+    ioctlsocket(m_Socket, FIONBIO, (u_long*)&enable);
 }
 
 TcpServer::~TcpServer()
